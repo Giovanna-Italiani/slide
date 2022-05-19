@@ -60,9 +60,48 @@ export default class Slide {
     this.onEnd = this.onEnd.bind(this);
   }
 
+  // Slides config
+  slidePosition(slide) {
+    const margin = (this.wrapper.offsetWidth - slide.offsetWidth) / 2;
+    return -(slide.offsetLeft - margin);
+  }
+
+  slidesConfig() {
+    this.slideArray = [...this.slide.children].map((element) => {
+      const position = this.slidePosition(element);
+      return { position, element };
+    });
+  }
+
+  // para saber qual é o proximo e o anterior
+  slidesIndexNav(index) {
+    const last = this.slideArray.length - 1;
+    console.log(last);
+    this.index = {
+      // se o index existir e se não vai ser undefined,
+      prev: index ? index - 1 : undefined,
+
+      active: index,
+
+      // se o index for igual a last (ultimo item), o valor vai ser undefined
+      // e se não for vai ser index + 1
+      next: index === last ? undefined : index + 1,
+    };
+  }
+
+  // muda o slide de acordo com o index
+  changeSlide(index) {
+    const activeSlide = this.slideArray[index];
+    this.moveSlide(activeSlide.position);
+    // tem q passar aqui pra poder atualizar assim q o slide mudar
+    this.slidesIndexNav(index);
+    this.dist.finalPosition = activeSlide.position;
+  }
+
   init() {
     this.bindEvents();
     this.addSlideEvents();
+    this.slidesConfig();
     return this;
   }
 }
