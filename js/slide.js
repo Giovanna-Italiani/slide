@@ -214,7 +214,7 @@ export class Slide {
 }
 
 // adicionar evento a navegação por setas/buttons
-export class SlideNav extends Slide {
+export default class SlideNav extends Slide {
   constructor(slide, wrapper) {
     super(slide, wrapper);
     this.bindControlEvents();
