@@ -13,6 +13,14 @@ export default class Slide {
     };
   }
 
+  // metódo pra fazer a transição do slide bunitinha, qnd começa ele fica falso
+  // e quando termina ele vira true
+  transition(active) {
+    // se o active for true vai utilizar o transform .3s
+    // e se não for, nao vai usar
+    this.slide.style.transition = active ? "transform .3s" : "";
+  }
+
   // metódo q vai mover o slide em si
   moveSlide(distX) {
     // movePosition pra salvar a posição em o slide de moveu referente ao distX
@@ -45,6 +53,7 @@ export default class Slide {
       movetype = "touchmove";
     }
     this.wrapper.addEventListener(movetype, this.onMove);
+    this.transition(false);
   }
 
   // 'changedTouches' propriedade somente do touchEvent que possui uma lista de eventos
@@ -72,6 +81,23 @@ export default class Slide {
     this.wrapper.removeEventListener(movetype, this.onMove);
     // quando a pessoa tirou o mouse de cima tem q guardar o valor 'distX'
     this.dist.finalPosition = this.dist.movePosition;
+    this.transition(true);
+    this.changeSlideOnEnd();
+  }
+
+  // evento pra trocar os slides quando o atual estiver na metade pro fim
+  // e centralizar o novo slide
+  changeSlideOnEnd() {
+    // quando o movimento for positivo e o proximo for diferente de undefined ele vai pro next e
+    //qnd o movimento for negativo e diferente de undefined ele vai pro prev e
+    // se for o primeiro ou o ultimo, centraliza o atual
+    if (this.dist.movement > 120 && this.index.next !== undefined) {
+      this.activeNextSlide();
+    } else if (this.dist.movement < -120 && this.index.prev !== undefined) {
+      this.activePrevSlide();
+    } else {
+      this.changeSlide(this.index.active);
+    }
   }
 
   // adiciona os eventos aos slides
@@ -127,8 +153,24 @@ export default class Slide {
     this.dist.finalPosition = activeSlide.position;
   }
 
+  // ativar o slide anterior
+  activePrevSlide() {
+    // so vai ativar o anterior se o index for diferente de undefined
+    if (this.index.prev !== undefined) {
+      this.changeSlide(this.index.prev);
+    }
+  }
+
+  // ativar o próximo slide
+  activeNextSlide() {
+    if (this.index.next !== undefined) {
+      this.changeSlide(this.index.next);
+    }
+  }
+
   init() {
     this.bindEvents();
+    this.transition(true);
     this.addSlideEvents();
     this.slidesConfig();
     return this;
