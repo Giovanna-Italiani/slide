@@ -1,3 +1,5 @@
+import debounce from "./debounce.js";
+
 export default class Slide {
   constructor(slide, wrapper) {
     this.slide = document.querySelector(slide);
@@ -11,6 +13,7 @@ export default class Slide {
       // total q se moveu 'movement'
       movement: 0,
     };
+    this.activeClass = "active";
   }
 
   // metódo pra fazer a transição do slide bunitinha, qnd começa ele fica falso
@@ -108,13 +111,6 @@ export default class Slide {
     this.wrapper.addEventListener("touchend", this.onEnd);
   }
 
-  // referencia ao objeto Slide
-  bindEvents() {
-    this.onStart = this.onStart.bind(this);
-    this.onMove = this.onMove.bind(this);
-    this.onEnd = this.onEnd.bind(this);
-  }
-
   // Slides config
   slidePosition(slide) {
     const margin = (this.wrapper.offsetWidth - slide.offsetWidth) / 2;
@@ -151,6 +147,15 @@ export default class Slide {
     // tem q passar aqui pra poder atualizar assim q o slide mudar
     this.slidesIndexNav(index);
     this.dist.finalPosition = activeSlide.position;
+    this.changeActiveClass();
+  }
+
+  // adicionar active ao elemento que esta ativo
+  changeActiveClass() {
+    this.slideArray.forEach((item) =>
+      item.element.classList.remove(this.activeClass)
+    );
+    this.slideArray[this.index.active].element.classList.add(this.activeClass);
   }
 
   // ativar o slide anterior
@@ -168,11 +173,34 @@ export default class Slide {
     }
   }
 
+  // metodo para ajustar as imagens ao tamanho da tela
+  onResize() {
+    // espera um tempo para ativar o resize da imagem
+    setTimeout(() => {
+      this.slidesConfig();
+      // vai reposicionar o slide q estiver ativo
+      this.changeSlide(this.index.active);
+    }, 1000);
+  }
+
+  addResizeEvent() {
+    window.addEventListener("resize", this.onResize);
+  }
+
+  // referencia ao objeto Slide
+  bindEvents() {
+    this.onStart = this.onStart.bind(this);
+    this.onMove = this.onMove.bind(this);
+    this.onEnd = this.onEnd.bind(this);
+    this.onResize = debounce(this.onResize.bind(this), 200);
+  }
+
   init() {
     this.bindEvents();
     this.transition(true);
     this.addSlideEvents();
     this.slidesConfig();
+    this.addResizeEvent();
     return this;
   }
 }
