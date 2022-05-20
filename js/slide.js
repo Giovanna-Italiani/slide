@@ -14,6 +14,9 @@ export class Slide {
       movement: 0,
     };
     this.activeClass = "active";
+
+    // evento q fala com as bolinhas e o slide assim q elas movem
+    this.changeEvent = new Event("changeEvent");
   }
 
   // metódo pra fazer a transição do slide bunitinha, qnd começa ele fica falso
@@ -127,7 +130,6 @@ export class Slide {
   // para saber qual é o proximo e o anterior
   slidesIndexNav(index) {
     const last = this.slideArray.length - 1;
-    console.log(last);
     this.index = {
       // se o index existir e se não vai ser undefined,
       prev: index ? index - 1 : undefined,
@@ -148,6 +150,7 @@ export class Slide {
     this.slidesIndexNav(index);
     this.dist.finalPosition = activeSlide.position;
     this.changeActiveClass();
+    this.wrapper.dispatchEvent(this.changeEvent);
   }
 
   // adicionar active ao elemento que esta ativo
@@ -212,6 +215,11 @@ export class Slide {
 
 // adicionar evento a navegação por setas/buttons
 export class SlideNav extends Slide {
+  constructor(slide, wrapper) {
+    super(slide, wrapper);
+    this.bindControlEvents();
+  }
+
   addArrow(prev, next) {
     this.prevElement = document.querySelector(prev);
     this.nextElement = document.querySelector(next);
@@ -221,5 +229,50 @@ export class SlideNav extends Slide {
   addArrowEvent() {
     this.prevElement.addEventListener("click", this.activePrevSlide);
     this.nextElement.addEventListener("click", this.activeNextSlide);
+  }
+
+  // paginação
+  createControl() {
+    const control = document.createElement("ul");
+    control.dataset.control = "slide";
+    this.slideArray.forEach((item, index) => {
+      control.innerHTML += `<li><a href="#slide${index + 1}">${
+        index + 1
+      }</a></li>`;
+    });
+    // adiciona o controle ao elemento
+    this.wrapper.appendChild(control);
+    return control;
+  }
+
+  // adicionar evento as bolinhas e os items
+  eventControl(item, index) {
+    item.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.changeSlide(index);
+    });
+    this.wrapper.addEventListener("changeEvent", this.activeControlItem);
+  }
+
+  // adiciona a classe ativa(bolinha vermelha) ao slide(referencia) e bolinha q estão ativas
+  activeControlItem() {
+    this.controlArray.forEach((item) =>
+      item.classList.remove(this.activeClass)
+    );
+    this.controlArray[this.index.active].classList.add(this.activeClass);
+  }
+
+  // função que adiciona os eventos de eventControl
+  addControl(customControl) {
+    this.control =
+      document.querySelector(customControl) || this.createControl();
+    this.controlArray = [...this.control.children];
+    this.activeControlItem();
+    this.controlArray.forEach(this.eventControl);
+  }
+
+  bindControlEvents() {
+    this.eventControl = this.eventControl.bind(this);
+    this.activeControlItem = this.activeControlItem.bind(this);
   }
 }
